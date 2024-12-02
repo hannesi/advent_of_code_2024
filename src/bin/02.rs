@@ -1,16 +1,20 @@
-use std::collections::HashSet;
+use std::{cmp::Ordering, collections::HashSet};
 
 advent_of_code::solution!(2);
 
-pub fn part_one(input: &str) -> Option<u32> {
-    let reports: Vec<Vec<u32>> = input
+fn parse_reports(input: &str) -> Vec<Vec<u32>> {
+    input
         .lines()
         .map(|line| {
             line.split_whitespace()
                 .map(|cell| cell.parse::<u32>().unwrap())
                 .collect()
         })
-        .collect();
+        .collect()
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    let reports = parse_reports(input);
 
     let safe_reports_count = reports
         .iter()
@@ -24,6 +28,12 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 fn adjacent_levels_do_not_bounce_excessively(report: &[u32]) -> bool {
+    adjacent_levels_safe_bounce_indicators(report)
+        .iter()
+        .all(|l| *l)
+}
+
+fn adjacent_levels_safe_bounce_indicators(report: &[u32]) -> Vec<bool> {
     report
         .iter()
         .zip(report.iter().skip(1))
@@ -31,7 +41,7 @@ fn adjacent_levels_do_not_bounce_excessively(report: &[u32]) -> bool {
             let diff = left.abs_diff(*right);
             diff >= 1 && diff <= 3
         })
-        .all(|l| l)
+        .collect()
 }
 
 fn levels_are_ascending_or_descending(report: &[u32]) -> bool {
@@ -41,16 +51,27 @@ fn levels_are_ascending_or_descending(report: &[u32]) -> bool {
         return false;
     }
 
-    let next_levels_is_higher: Vec<bool> = report
+    let interlevel_bounce_directions = interlevel_bounce_direction_array(report);
+
+    interlevel_bounce_directions
+        .iter()
+        .all(|ilbd| *ilbd == Ordering::Less)
+        || interlevel_bounce_directions
+            .iter()
+            .all(|ilbd| *ilbd == Ordering::Greater)
+}
+
+fn interlevel_bounce_direction_array(report: &[u32]) -> Vec<Ordering> {
+    report
         .iter()
         .zip(report.iter().skip(1))
-        .map(|(left, right)| left.lt(right))
-        .collect();
-
-    next_levels_is_higher.iter().all(|l| *l) || next_levels_is_higher.iter().all(|l| !*l)
+        .map(|(left, right)| left.cmp(right))
+        .collect()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
+    let reports = parse_reports(input);
+
     None
 }
 
